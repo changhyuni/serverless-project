@@ -1,0 +1,59 @@
+{
+    "builders" : [{
+        "type": "amazon-ebs",
+        "access_key": "XXXXXXXXXXXXXX",
+        "secret_key": "XXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "ami_name": "CCCR-PROJECT-Web-BaseImage",
+        "instance_type": "t2.micro",
+        "region": "ap-northeast-2",
+        "ssh_username": "ec2-user",
+        "source_ami": "ami-027ce4ce0590e3c98",
+        "vpc_id": "vpc-096f3db22b777815e",
+        "subnet_id": "subnet-09236b1764fce6c9f"
+    }],
+    "provisioners": [{
+        "type": "shell",
+        "inline": [
+            "sudo yum groupinstall -y 'Development Tools' && sudo yum install -y curl file git ruby",
+            "sh -c \"$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)\"",
+            "echo 'export PATH=\"${HOME}/.linuxbrew/bin:$PATH\"' >>~/.bash_profile",
+            "echo 'export MANPATH=\"${HOME}/.linuxbrew/share/man:$MANPATH\"' >>~/.bash_profile",
+            "echo 'export INFOPATH=\"${HOME}/.linuxbrew/share/info:$INFOPATH\"' >>~/.bash_profile",
+            "echo 'eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)' >> /home/ec2-user/.bash_profile",
+            "eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)",
+            "source ~/.bash_profile",
+            "brew install hugo",
+            "hugo new site quickstart",
+            "git init ~/quickstart/",
+            "cd quickstart",
+            "git submodule add https://github.com/apvarun/showcase-hugo-theme.git themes/showcase",
+            "cp themes/showcase/exampleSite/config.toml ./",
+            "sed -i '3s/\"Showcase Theme\"/\"CCCR-PROJECT\"/g' ./config.toml",
+            "hugo new mp4/test.md",
+            "mkdir ~/.aws",
+            "sudo yum -y install -y amazon-efs-utils",
+            "mkdir /home/ec2-user/compare",
+            "touch /home/ec2-user/compare/mp4-com.txt"
+        ]
+    },
+    {
+        "type": "file",
+        "source": "config",
+        "destination": "~/.aws/config"
+    },
+    {
+        "type": "file",
+        "source": "credentials",
+        "destination": "~/.aws/credentials"
+    },
+      {
+        "type": "file",
+        "source": "autoup.sh",
+        "destination": "/home/ec2-user/compare/autoup.sh"
+      },
+      {
+        "type": "file",
+        "source": "test.md",
+        "destination": "/home/ec2-user/compare/test.md"
+      }]
+}
